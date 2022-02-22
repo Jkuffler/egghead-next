@@ -343,10 +343,11 @@ const Lesson: React.FC<LessonProps> = ({
   ).length
 
   React.useEffect(() => {
-    if (currentLessonState === 'loaded') {
+    // if (currentLessonState === 'loaded') {
+    if (!spinnerVisible) {
       videoService.send({type: 'LOADED'})
     }
-  }, [currentLessonState])
+  }, [spinnerVisible])
 
   React.useEffect(() => {
     //TODO: We are doing work here that the lesson machine should
@@ -407,7 +408,7 @@ const Lesson: React.FC<LessonProps> = ({
           send('LOAD')
           videoService.send({
             type: 'LOAD_RESOURCE',
-            resource: lesson,
+            resource: initialLesson,
           })
         }
         break
@@ -469,7 +470,7 @@ const Lesson: React.FC<LessonProps> = ({
     //   resource: initialLesson,
     // })
     // Focus the video element to allow keyboard shortcuts to work right away
-    videoService.send('ACTIVITY')
+    // videoService.send('ACTIVITY')
   }, [initialLesson.slug])
 
   const play = () => {
