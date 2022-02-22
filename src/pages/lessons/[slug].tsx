@@ -354,105 +354,106 @@ const Lesson: React.FC<LessonProps> = ({
     console.debug(`current state of lesson:`, currentLessonState)
     const lesson = get(lessonState, 'context.lesson')
     const mediaPresent = Boolean(lesson?.hls_url || lesson?.dash_url)
-    if (!mounted) return
 
-    switch (currentLessonState) {
-      case 'loaded':
-        if (mediaPresent)
-          videoService.send({
-            type: 'LOAD_RESOURCE',
-            resource: lesson,
-          })
-        // Focus the video element to allow keyboard shortcuts to work right away
-        videoService.send('ACTIVITY')
-        const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
-        // TODO: Detangle this nested series of `if` statements to make the
-        // logic more immediately easy to reason about.
+    if (mounted) {
+      switch (currentLessonState) {
+        case 'loaded':
+          if (mediaPresent)
+            videoService.send({
+              type: 'LOAD_RESOURCE',
+              resource: lesson,
+            })
+          // Focus the video element to allow keyboard shortcuts to work right away
+          videoService.send('ACTIVITY')
+          const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
+          // TODO: Detangle this nested series of `if` statements to make the
+          // logic more immediately easy to reason about.
 
-        if (session_id) {
-          // If the URL contains the session ID, even if there is a viewer, put
-          // them in the `subscribing` state.
-          console.debug('SUBSCRIBE')
-          send('SUBSCRIBE')
-        } else {
-          if (
-            isEmpty(viewer) &&
-            isEmpty(cookies.get('customer')) &&
-            free_forever
-          ) {
-            if (viewLimitNotReached && mediaPresent) {
+          if (session_id) {
+            // If the URL contains the session ID, even if there is a viewer, put
+            // them in the `subscribing` state.
+            console.debug('SUBSCRIBE')
+            send('SUBSCRIBE')
+          } else {
+            if (
+              isEmpty(viewer) &&
+              isEmpty(cookies.get('customer')) &&
+              free_forever
+            ) {
+              if (viewLimitNotReached && mediaPresent) {
+                console.debug('VIEW')
+                send('VIEW')
+              } else {
+                console.debug('JOIN')
+                send('JOIN')
+              }
+            } else if (mediaPresent) {
               console.debug('VIEW')
               send('VIEW')
             } else {
-              console.debug('JOIN')
-              send('JOIN')
+              // If lesson is not 'free_forever' and the media isn't present,
+              // then we deduce that the lesson is Pro-only and the user needsto
+              // subscribe before viewing it.
+              console.debug('SUBSCRIBE')
+              send('SUBSCRIBE')
             }
-          } else if (mediaPresent) {
-            console.debug('VIEW')
-            send('VIEW')
-          } else {
-            // If lesson is not 'free_forever' and the media isn't present,
-            // then we deduce that the lesson is Pro-only and the user needsto
-            // subscribe before viewing it.
-            console.debug('SUBSCRIBE')
-            send('SUBSCRIBE')
           }
-        }
-        break
+          break
 
-      case 'viewing':
-        console.debug(
-          `changed to viewing isFullscreen: ${isFullscreen} mediaPresent: ${mediaPresent}`,
-        )
+        case 'viewing':
+          console.debug(
+            `changed to viewing isFullscreen: ${isFullscreen} mediaPresent: ${mediaPresent}`,
+          )
 
-        if (!mediaPresent && !isFullscreen) {
-          console.debug(`sending load event from viewing`)
-          console.debug('LOAD')
-          send('LOAD')
-          videoService.send({
-            type: 'LOAD_RESOURCE',
-            resource: initialLesson,
-          })
-        }
-        break
+          if (!mediaPresent && !isFullscreen) {
+            console.debug(`sending load event from viewing`)
+            console.debug('LOAD')
+            send('LOAD')
+            videoService.send({
+              type: 'LOAD_RESOURCE',
+              resource: initialLesson,
+            })
+          }
+          break
 
-      case 'completed':
-        console.debug('handling a change to completed', {
-          lesson,
-          lessonView,
-          isIncomingAnonViewer,
-        })
-        onEnded(lesson)
-          .then((lessonView: any) => {
-            if (lessonView) {
-              setLessonView(lessonView)
-              completeVideo(lessonView)
-            } else if (lesson.collection && isIncomingAnonViewer) {
-              console.debug('COURSE_PITCH')
-              send(`COURSE_PITCH`)
-            } else if (nextLesson) {
-              console.debug(`Showing Next Lesson Overlay`)
-              checkAutoPlay()
-            } else {
-              console.debug(`Showing Recommend Overlay`)
-              send(`RECOMMEND`)
-            }
+        case 'completed':
+          console.debug('handling a change to completed', {
+            lesson,
+            lessonView,
+            isIncomingAnonViewer,
           })
-          .catch(() => {
-            if (lessonView) {
-              completeVideo(lessonView)
-            } else if (lesson.collection && isIncomingAnonViewer) {
-              console.debug('COURSE_PITCH')
-              send(`COURSE_PITCH`)
-            } else if (nextLesson) {
-              console.debug(`Showing Next Lesson Overlay`)
-              checkAutoPlay()
-            } else {
-              console.debug(`Showing Recommend Overlay`)
-              send(`RECOMMEND`)
-            }
-          })
-        break
+          onEnded(lesson)
+            .then((lessonView: any) => {
+              if (lessonView) {
+                setLessonView(lessonView)
+                completeVideo(lessonView)
+              } else if (lesson.collection && isIncomingAnonViewer) {
+                console.debug('COURSE_PITCH')
+                send(`COURSE_PITCH`)
+              } else if (nextLesson) {
+                console.debug(`Showing Next Lesson Overlay`)
+                checkAutoPlay()
+              } else {
+                console.debug(`Showing Recommend Overlay`)
+                send(`RECOMMEND`)
+              }
+            })
+            .catch(() => {
+              if (lessonView) {
+                completeVideo(lessonView)
+              } else if (lesson.collection && isIncomingAnonViewer) {
+                console.debug('COURSE_PITCH')
+                send(`COURSE_PITCH`)
+              } else if (nextLesson) {
+                console.debug(`Showing Next Lesson Overlay`)
+                checkAutoPlay()
+              } else {
+                console.debug(`Showing Recommend Overlay`)
+                send(`RECOMMEND`)
+              }
+            })
+          break
+      }
     }
   }, [currentLessonState, mounted, session_id])
 
