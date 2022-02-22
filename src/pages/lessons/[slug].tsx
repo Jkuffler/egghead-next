@@ -367,7 +367,6 @@ const Lesson: React.FC<LessonProps> = ({
             if (viewLimitNotReached && mediaPresent) {
               console.debug('VIEW')
               send('VIEW')
-              videoService.send('LOADED')
             } else {
               console.debug('JOIN')
               send('JOIN')
@@ -375,7 +374,6 @@ const Lesson: React.FC<LessonProps> = ({
           } else if (mediaPresent) {
             console.debug('VIEW')
             send('VIEW')
-            videoService.send('LOADED')
           } else {
             // If lesson is not 'free_forever' and the media isn't present,
             // then we deduce that the lesson is Pro-only and the user needsto
@@ -442,6 +440,12 @@ const Lesson: React.FC<LessonProps> = ({
   }, [currentLessonState, session_id])
 
   React.useEffect(() => {
+    const lesson = get(lessonState, 'context.lesson')
+    const mediaPresent = Boolean(lesson?.hls_url || lesson?.dash_url)
+    mediaPresent && videoService.send('LOADED')
+  }, [initialLesson.slug])
+
+  React.useEffect(() => {
     // Keep lesson machine state in sync with
     // videoService to control overlays and stuff
     if (!isWaiting) {
@@ -457,6 +461,8 @@ const Lesson: React.FC<LessonProps> = ({
       type: 'LOAD_RESOURCE',
       resource: initialLesson,
     })
+    // Focus the video element to allow keyboard shortcuts to work right away
+    videoService.send('ACTIVITY')
   }, [initialLesson.slug])
 
   const play = () => {
@@ -472,8 +478,6 @@ const Lesson: React.FC<LessonProps> = ({
   }
 
   React.useEffect(() => {
-    // Focus the video element to allow keyboard shortcuts to work right away
-    videoService.send('ACTIVITY')
     // Autoplay
     if (autoplay && !isWaiting) {
       play()
@@ -919,9 +923,10 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
       services={{
         addCueNote,
         deleteCueNote,
-        loadViewer: (_context: VideoStateContext, _event: VideoEvent) => () => {
-          if (!loading) return viewer
-        },
+        loadViewer:
+          (_context: VideoStateContext, _event: VideoEvent) => async () => {
+            return await viewer
+          },
         loadResource:
           (_context: VideoStateContext, event: VideoEvent) => async () => {
             const loadedLesson = get(event, 'resource')
