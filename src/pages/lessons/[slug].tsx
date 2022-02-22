@@ -356,6 +356,9 @@ const Lesson: React.FC<LessonProps> = ({
           resource: lesson,
         })
 
+        // Focus the video element to allow keyboard shortcuts to work right away
+        videoService.send('ACTIVITY')
+
         const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
         // TODO: Detangle this nested series of `if` statements to make the
         // logic more immediately easy to reason about.
@@ -463,8 +466,6 @@ const Lesson: React.FC<LessonProps> = ({
     //   type: 'LOAD_RESOURCE',
     //   resource: initialLesson,
     // })
-    // Focus the video element to allow keyboard shortcuts to work right away
-    // videoService.send('ACTIVITY')
   }, [initialLesson.slug])
 
   const play = () => {
@@ -481,7 +482,7 @@ const Lesson: React.FC<LessonProps> = ({
 
   React.useEffect(() => {
     // Autoplay
-    if (autoplay && !isWaiting) {
+    if (autoplay && !isWaiting && mounted) {
       play()
     }
   }, [isWaiting, video])
