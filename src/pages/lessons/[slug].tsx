@@ -343,13 +343,6 @@ const Lesson: React.FC<LessonProps> = ({
   ).length
 
   React.useEffect(() => {
-    // if (currentLessonState === 'loaded') {
-    if (!spinnerVisible) {
-      videoService.send({type: 'LOADED'})
-    }
-  }, [spinnerVisible])
-
-  React.useEffect(() => {
     //TODO: We are doing work here that the lesson machine should
     //be handling but we don't have enough information in the context
     console.debug(`current state of lesson:`, currentLessonState)
@@ -402,14 +395,15 @@ const Lesson: React.FC<LessonProps> = ({
         console.debug(
           `changed to viewing isFullscreen: ${isFullscreen} mediaPresent: ${mediaPresent}`,
         )
+
         if (!mediaPresent && !isFullscreen) {
           console.debug(`sending load event from viewing`)
           console.debug('LOAD')
           send('LOAD')
-          videoService.send({
-            type: 'LOAD_RESOURCE',
-            resource: initialLesson,
-          })
+          // videoService.send({
+          //   type: 'LOAD_RESOURCE',
+          //   resource: initialLesson,
+          // })
         }
         break
 
