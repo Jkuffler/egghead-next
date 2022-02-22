@@ -179,9 +179,10 @@ const Lesson: React.FC<LessonProps> = ({
   )
 
   // see all state changes
-  // videoService.onTransition((state) => {
-  //   console.debug(state.value)
-  // })
+  // @ts-ignore
+  videoService.onTransition((state) => {
+    console.debug(state.value)
+  })
 
   const {setPlayerPrefs, defaultView, subtitle, autoplay} = usePlayerPrefs()
   const withSidePanel = useSelector(videoService, selectWithSidePanel)
@@ -348,6 +349,14 @@ const Lesson: React.FC<LessonProps> = ({
     (comment) => comment.state !== 'hidden',
   ).length
 
+  // React.useEffect(() => {
+  //   const lesson = get(lessonState, 'context.lesson')
+  //   videoService.send({
+  //     type: 'LOAD_RESOURCE',
+  //     resource: lesson,
+  //   })
+  // }, [initialLesson.slug])
+
   React.useEffect(() => {
     //TODO: We are doing work here that the lesson machine should
     //be handling but we don't have enough information in the context
@@ -355,105 +364,104 @@ const Lesson: React.FC<LessonProps> = ({
     const lesson = get(lessonState, 'context.lesson')
     const mediaPresent = Boolean(lesson?.hls_url || lesson?.dash_url)
 
-    if (mounted) {
-      switch (currentLessonState) {
-        case 'loaded':
-          if (mediaPresent)
-            videoService.send({
-              type: 'LOAD_RESOURCE',
-              resource: lesson,
-            })
-          const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
-          // TODO: Detangle this nested series of `if` statements to make the
-          // logic more immediately easy to reason about.
+    switch (currentLessonState) {
+      case 'loaded':
+        if (mounted && mediaPresent) {
+          videoService.send({
+            type: 'LOAD_RESOURCE',
+            resource: lesson,
+          })
+        }
+        const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
+        // TODO: Detangle this nested series of `if` statements to make the
+        // logic more immediately easy to reason about.
 
-          if (session_id) {
-            // If the URL contains the session ID, even if there is a viewer, put
-            // them in the `subscribing` state.
-            console.debug('SUBSCRIBE')
-            send('SUBSCRIBE')
-          } else {
-            if (
-              isEmpty(viewer) &&
-              isEmpty(cookies.get('customer')) &&
-              free_forever
-            ) {
-              if (viewLimitNotReached && mediaPresent) {
-                console.debug('VIEW')
-                send('VIEW')
-              } else {
-                console.debug('JOIN')
-                send('JOIN')
-              }
-            } else if (mediaPresent) {
+        if (session_id) {
+          // If the URL contains the session ID, even if there is a viewer, put
+          // them in the `subscribing` state.
+          console.debug('SUBSCRIBE')
+          send('SUBSCRIBE')
+        } else {
+          if (
+            isEmpty(viewer) &&
+            isEmpty(cookies.get('customer')) &&
+            free_forever
+          ) {
+            if (viewLimitNotReached && mediaPresent) {
               console.debug('VIEW')
               send('VIEW')
             } else {
-              // If lesson is not 'free_forever' and the media isn't present,
-              // then we deduce that the lesson is Pro-only and the user needsto
-              // subscribe before viewing it.
-              console.debug('SUBSCRIBE')
-              send('SUBSCRIBE')
+              console.debug('JOIN')
+              send('JOIN')
             }
+          } else if (mediaPresent) {
+            console.debug('VIEW')
+            send('VIEW')
+          } else {
+            // If lesson is not 'free_forever' and the media isn't present,
+            // then we deduce that the lesson is Pro-only and the user needsto
+            // subscribe before viewing it.
+            console.debug('SUBSCRIBE')
+            send('SUBSCRIBE')
           }
-          break
+        }
+        break
 
-        case 'viewing':
-          console.debug(
-            `changed to viewing isFullscreen: ${isFullscreen} mediaPresent: ${mediaPresent}`,
-          )
+      case 'viewing':
+        console.debug(
+          `changed to viewing isFullscreen: ${isFullscreen} mediaPresent: ${mediaPresent}`,
+        )
 
-          if (!mediaPresent && !isFullscreen) {
-            console.debug(`sending load event from viewing`)
-            console.debug('LOAD')
-            send('LOAD')
-            videoService.send({
-              type: 'LOAD_RESOURCE',
-              resource: initialLesson,
-            })
-          }
-          break
-
-        case 'completed':
-          console.debug('handling a change to completed', {
-            lesson,
-            lessonView,
-            isIncomingAnonViewer,
+        if (!mediaPresent && !isFullscreen) {
+          console.debug(`sending load event from viewing`)
+          console.debug('LOAD')
+          send('LOAD')
+          videoService.send({
+            type: 'LOAD_RESOURCE',
+            resource: initialLesson,
           })
-          onEnded(lesson)
-            .then((lessonView: any) => {
-              if (lessonView) {
-                setLessonView(lessonView)
-                completeVideo(lessonView)
-              } else if (lesson.collection && isIncomingAnonViewer) {
-                console.debug('COURSE_PITCH')
-                send(`COURSE_PITCH`)
-              } else if (nextLesson) {
-                console.debug(`Showing Next Lesson Overlay`)
-                checkAutoPlay()
-              } else {
-                console.debug(`Showing Recommend Overlay`)
-                send(`RECOMMEND`)
-              }
-            })
-            .catch(() => {
-              if (lessonView) {
-                completeVideo(lessonView)
-              } else if (lesson.collection && isIncomingAnonViewer) {
-                console.debug('COURSE_PITCH')
-                send(`COURSE_PITCH`)
-              } else if (nextLesson) {
-                console.debug(`Showing Next Lesson Overlay`)
-                checkAutoPlay()
-              } else {
-                console.debug(`Showing Recommend Overlay`)
-                send(`RECOMMEND`)
-              }
-            })
-          break
-      }
+        }
+        break
+
+      case 'completed':
+        console.debug('handling a change to completed', {
+          lesson,
+          lessonView,
+          isIncomingAnonViewer,
+        })
+        onEnded(lesson)
+          .then((lessonView: any) => {
+            if (lessonView) {
+              setLessonView(lessonView)
+              completeVideo(lessonView)
+            } else if (lesson.collection && isIncomingAnonViewer) {
+              console.debug('COURSE_PITCH')
+              send(`COURSE_PITCH`)
+            } else if (nextLesson) {
+              console.debug(`Showing Next Lesson Overlay`)
+              checkAutoPlay()
+            } else {
+              console.debug(`Showing Recommend Overlay`)
+              send(`RECOMMEND`)
+            }
+          })
+          .catch(() => {
+            if (lessonView) {
+              completeVideo(lessonView)
+            } else if (lesson.collection && isIncomingAnonViewer) {
+              console.debug('COURSE_PITCH')
+              send(`COURSE_PITCH`)
+            } else if (nextLesson) {
+              console.debug(`Showing Next Lesson Overlay`)
+              checkAutoPlay()
+            } else {
+              console.debug(`Showing Recommend Overlay`)
+              send(`RECOMMEND`)
+            }
+          })
+        break
     }
-  }, [currentLessonState, mounted, session_id])
+  }, [currentLessonState, mounted, lesson, session_id])
 
   React.useEffect(() => {
     // Keep lesson machine state in sync with
@@ -466,12 +474,10 @@ const Lesson: React.FC<LessonProps> = ({
 
   React.useEffect(() => {
     // Load the video resource
-    if (mounted) {
-      // Focus the video element to allow keyboard shortcuts to work right away
-      videoService.send('ACTIVITY')
-      send({type: 'LOAD', lesson: initialLesson})
-    }
-  }, [initialLesson.slug, mounted])
+    send({type: 'LOAD', lesson: initialLesson})
+    // Focus the video element to allow keyboard shortcuts to work right away
+    videoService.send('ACTIVITY')
+  }, [initialLesson.slug])
 
   const play = () => {
     const playPromise = video?.play()
