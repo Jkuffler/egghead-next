@@ -351,11 +351,11 @@ const Lesson: React.FC<LessonProps> = ({
 
     switch (currentLessonState) {
       case 'loaded':
-        videoService.send({
-          type: 'LOAD_RESOURCE',
-          resource: lesson,
-        })
-
+        mediaPresent &&
+          videoService.send({
+            type: 'LOAD_RESOURCE',
+            resource: lesson,
+          })
         // Focus the video element to allow keyboard shortcuts to work right away
         videoService.send('ACTIVITY')
 
