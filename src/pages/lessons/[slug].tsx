@@ -457,17 +457,17 @@ const Lesson: React.FC<LessonProps> = ({
       hasEnded && send('COMPLETE')
       isPaused ? send('PAUSE') : send('PLAY')
     } else {
-      videoService.send('LOADED')
+      send({type: 'LOAD', lesson: initialLesson})
     }
   }, [hasEnded, isPaused, isWaiting])
 
   React.useEffect(() => {
     // Load the video resource
     send({type: 'LOAD', lesson: initialLesson})
-    // videoService.send({
-    //   type: 'LOAD_RESOURCE',
-    //   resource: initialLesson,
-    // })
+    videoService.send({
+      type: 'LOAD_RESOURCE',
+      resource: initialLesson,
+    })
   }, [initialLesson.slug])
 
   const play = () => {
