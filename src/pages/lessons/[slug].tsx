@@ -455,8 +455,6 @@ const Lesson: React.FC<LessonProps> = ({
       type: 'LOAD_RESOURCE',
       resource: initialLesson,
     })
-    // Focus the video element to allow keyboard shortcuts to work right away
-    videoService.send('ACTIVITY')
   }, [initialLesson.slug])
 
   const play = () => {
@@ -472,6 +470,8 @@ const Lesson: React.FC<LessonProps> = ({
   }
 
   React.useEffect(() => {
+    // Focus the video element to allow keyboard shortcuts to work right away
+    videoService.send('ACTIVITY')
     // Autoplay
     if (autoplay && !isWaiting) {
       play()
@@ -880,7 +880,7 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
   initialLesson,
   ...props
 }) => {
-  const {viewer} = useViewer()
+  const {viewer, loading} = useViewer()
   const [watchCount, setWatchCount] = React.useState<number>(0)
   const [lessonState, send] = useMachine(lessonMachine, {
     context: {
@@ -917,10 +917,9 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
       services={{
         addCueNote,
         deleteCueNote,
-        loadViewer:
-          (_context: VideoStateContext, _event: VideoEvent) => async () => {
-            return await viewer
-          },
+        loadViewer: (_context: VideoStateContext, _event: VideoEvent) => () => {
+          if (!loading) return viewer
+        },
         loadResource:
           (_context: VideoStateContext, event: VideoEvent) => async () => {
             const loadedLesson = get(event, 'resource')
