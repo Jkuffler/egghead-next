@@ -456,18 +456,20 @@ const Lesson: React.FC<LessonProps> = ({
     if (!isWaiting) {
       hasEnded && send('COMPLETE')
       isPaused ? send('PAUSE') : send('PLAY')
-    } else {
-      send({type: 'LOAD', lesson: initialLesson})
     }
+    // else {
+    //   // send({type: 'LOAD', lesson: initialLesson})
+    //   videoService.send({type: 'LOADED'})
+    // }
   }, [hasEnded, isPaused, isWaiting])
 
   React.useEffect(() => {
     // Load the video resource
     send({type: 'LOAD', lesson: initialLesson})
-    videoService.send({
-      type: 'LOAD_RESOURCE',
-      resource: initialLesson,
-    })
+    // videoService.send({
+    //   type: 'LOAD_RESOURCE',
+    //   resource: initialLesson,
+    // })
   }, [initialLesson.slug])
 
   const play = () => {
@@ -934,7 +936,7 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
             return await viewer
           },
         loadResource:
-          (_context: VideoStateContext, event: VideoEvent) => async () => {
+          (_context: VideoStateContext, event: VideoEvent) => () => {
             const loadedLesson = get(event, 'resource')
             return {
               ...initialLesson,
