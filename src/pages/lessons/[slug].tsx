@@ -177,6 +177,12 @@ const Lesson: React.FC<LessonProps> = ({
     'lesson',
     initialLesson,
   )
+
+  // @ts-ignore
+  videoService.onTransition((state) => {
+    console.debug(state.value)
+  })
+
   const {setPlayerPrefs, defaultView, subtitle, autoplay} = usePlayerPrefs()
   const withSidePanel = useSelector(videoService, selectWithSidePanel)
   const metadataTracks = useSelector(videoService, selectMetadataTracks)
@@ -349,6 +355,7 @@ const Lesson: React.FC<LessonProps> = ({
           type: 'LOAD_RESOURCE',
           resource: lesson,
         })
+
         const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
         // TODO: Detangle this nested series of `if` statements to make the
         // logic more immediately easy to reason about.
@@ -440,12 +447,6 @@ const Lesson: React.FC<LessonProps> = ({
   }, [currentLessonState, session_id])
 
   React.useEffect(() => {
-    const lesson = get(lessonState, 'context.lesson')
-    const mediaPresent = Boolean(lesson?.hls_url || lesson?.dash_url)
-    mediaPresent && videoService.send('LOADED')
-  }, [initialLesson.slug])
-
-  React.useEffect(() => {
     // Keep lesson machine state in sync with
     // videoService to control overlays and stuff
     if (!isWaiting) {
@@ -457,10 +458,10 @@ const Lesson: React.FC<LessonProps> = ({
   React.useEffect(() => {
     // Load the video resource
     send({type: 'LOAD', lesson: initialLesson})
-    videoService.send({
-      type: 'LOAD_RESOURCE',
-      resource: initialLesson,
-    })
+    // videoService.send({
+    //   type: 'LOAD_RESOURCE',
+    //   resource: initialLesson,
+    // })
     // Focus the video element to allow keyboard shortcuts to work right away
     videoService.send('ACTIVITY')
   }, [initialLesson.slug])
@@ -918,6 +919,7 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
       },
     },
   })
+
   return (
     <VideoProvider
       services={{
