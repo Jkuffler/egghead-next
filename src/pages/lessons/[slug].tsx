@@ -343,6 +343,12 @@ const Lesson: React.FC<LessonProps> = ({
   ).length
 
   React.useEffect(() => {
+    if (currentLessonState === 'loaded') {
+      videoService.send({type: 'LOADED'})
+    }
+  }, [currentLessonState])
+
+  React.useEffect(() => {
     //TODO: We are doing work here that the lesson machine should
     //be handling but we don't have enough information in the context
     console.debug(`current state of lesson:`, currentLessonState)
