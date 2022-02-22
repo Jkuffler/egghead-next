@@ -456,6 +456,8 @@ const Lesson: React.FC<LessonProps> = ({
     if (!isWaiting) {
       hasEnded && send('COMPLETE')
       isPaused ? send('PAUSE') : send('PLAY')
+    } else {
+      videoService.send('LOADED')
     }
   }, [hasEnded, isPaused, isWaiting])
 
