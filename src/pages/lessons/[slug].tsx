@@ -468,8 +468,8 @@ const Lesson: React.FC<LessonProps> = ({
 
   React.useEffect(() => {
     // Load the video resource
-    send({type: 'LOAD', lesson: initialLesson})
-  }, [initialLesson.slug])
+    mounted && send({type: 'LOAD', lesson: initialLesson})
+  }, [initialLesson.slug, mounted])
 
   const play = () => {
     const playPromise = video?.play()
