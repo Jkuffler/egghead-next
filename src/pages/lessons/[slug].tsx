@@ -358,7 +358,6 @@ const Lesson: React.FC<LessonProps> = ({
           })
         // Focus the video element to allow keyboard shortcuts to work right away
         videoService.send('ACTIVITY')
-
         const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
         // TODO: Detangle this nested series of `if` statements to make the
         // logic more immediately easy to reason about.
@@ -448,7 +447,7 @@ const Lesson: React.FC<LessonProps> = ({
           })
         break
     }
-  }, [currentLessonState, session_id])
+  }, [currentLessonState, initialLesson.slug, session_id])
 
   React.useEffect(() => {
     // Keep lesson machine state in sync with
@@ -936,7 +935,7 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
             return await viewer
           },
         loadResource:
-          (_context: VideoStateContext, event: VideoEvent) => () => {
+          (_context: VideoStateContext, event: VideoEvent) => async () => {
             const loadedLesson = get(event, 'resource')
             return {
               ...initialLesson,
