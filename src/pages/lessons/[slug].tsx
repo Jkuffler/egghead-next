@@ -362,7 +362,11 @@ const Lesson: React.FC<LessonProps> = ({
         const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
         // TODO: Detangle this nested series of `if` statements to make the
         // logic more immediately easy to reason about.
-
+        mediaPresent &&
+          videoService.send({
+            type: 'LOAD_RESOURCE',
+            resource: lesson,
+          })
         if (session_id) {
           // If the URL contains the session ID, even if there is a viewer, put
           // them in the `subscribing` state.
@@ -378,8 +382,7 @@ const Lesson: React.FC<LessonProps> = ({
               console.debug('VIEW')
               send('VIEW')
               videoService.send({
-                type: 'LOAD_RESOURCE',
-                resource: lesson,
+                type: 'LOADED',
               })
             } else {
               console.debug('JOIN')
@@ -389,8 +392,7 @@ const Lesson: React.FC<LessonProps> = ({
             console.debug('VIEW')
             send('VIEW')
             videoService.send({
-              type: 'LOAD_RESOURCE',
-              resource: lesson,
+              type: 'LOADED',
             })
           } else {
             // If lesson is not 'free_forever' and the media isn't present,
