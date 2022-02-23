@@ -377,6 +377,10 @@ const Lesson: React.FC<LessonProps> = ({
             if (viewLimitNotReached && mediaPresent) {
               console.debug('VIEW')
               send('VIEW')
+              videoService.send({
+                type: 'LOAD_RESOURCE',
+                resource: lesson,
+              })
             } else {
               console.debug('JOIN')
               send('JOIN')
@@ -384,6 +388,10 @@ const Lesson: React.FC<LessonProps> = ({
           } else if (mediaPresent) {
             console.debug('VIEW')
             send('VIEW')
+            videoService.send({
+              type: 'LOAD_RESOURCE',
+              resource: lesson,
+            })
           } else {
             // If lesson is not 'free_forever' and the media isn't present,
             // then we deduce that the lesson is Pro-only and the user needsto
@@ -392,10 +400,7 @@ const Lesson: React.FC<LessonProps> = ({
             send('SUBSCRIBE')
           }
         }
-        videoService.send({
-          type: 'LOAD_RESOURCE',
-          resource: lesson,
-        })
+
         break
 
       case 'viewing':
@@ -885,10 +890,6 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
   initialLesson,
   ...props
 }) => {
-  const [mounted, setMounted] = React.useState<boolean>(false)
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
   const {viewer} = useViewer()
   const [watchCount, setWatchCount] = React.useState<number>(0)
   const [lessonState, send] = useMachine(lessonMachine, {
@@ -898,7 +899,6 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
     },
     services: {
       loadLesson: async () => {
-        if (!mounted) return
         if (cookieUtil.get(`egghead-watch-count`)) {
           setWatchCount(Number(cookieUtil.get(`egghead-watch-count`)))
         } else {
