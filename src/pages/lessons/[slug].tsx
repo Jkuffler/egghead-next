@@ -898,6 +898,7 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
     },
     services: {
       loadLesson: async () => {
+        if (!mounted) return
         if (cookieUtil.get(`egghead-watch-count`)) {
           setWatchCount(Number(cookieUtil.get(`egghead-watch-count`)))
         } else {
@@ -941,15 +942,13 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
           },
       }}
     >
-      {mounted && (
-        <Lesson
-          state={[lessonState, send]}
-          initialLesson={initialLesson}
-          watchCount={watchCount}
-          setWatchCount={setWatchCount}
-          {...props}
-        />
-      )}
+      <Lesson
+        state={[lessonState, send]}
+        initialLesson={initialLesson}
+        watchCount={watchCount}
+        setWatchCount={setWatchCount}
+        {...props}
+      />
     </VideoProvider>
   )
 }
