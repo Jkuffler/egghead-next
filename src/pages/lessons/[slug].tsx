@@ -381,9 +381,6 @@ const Lesson: React.FC<LessonProps> = ({
             if (viewLimitNotReached && mediaPresent) {
               console.debug('VIEW')
               send('VIEW')
-              videoService.send({
-                type: 'LOADED',
-              })
             } else {
               console.debug('JOIN')
               send('JOIN')
@@ -391,9 +388,6 @@ const Lesson: React.FC<LessonProps> = ({
           } else if (mediaPresent) {
             console.debug('VIEW')
             send('VIEW')
-            videoService.send({
-              type: 'LOADED',
-            })
           } else {
             // If lesson is not 'free_forever' and the media isn't present,
             // then we deduce that the lesson is Pro-only and the user needsto
@@ -944,9 +938,13 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
           },
       }}
       guards={{
-        resourceLoaded: (context: VideoStateContext, _event: VideoEvent) => {
-          return !isEmpty(get(context.resource, 'lesson.hls_url'))
-        },
+        resourceLoaded:
+          (context: VideoStateContext, _event: VideoEvent) => async () => {
+            return (
+              !isEmpty(get(context.resource, 'lesson.hls_url')) &&
+              lessonState.value === 'loaded'
+            )
+          },
       }}
     >
       <Lesson
