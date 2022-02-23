@@ -934,11 +934,12 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
           },
         loadResource:
           (_context: VideoStateContext, event: VideoEvent) => async () => {
-            const loadedLesson = get(event, 'resource')
-            return {
-              ...initialLesson,
-              ...loadedLesson,
-            }
+            return
+            // const loadedLesson = get(event, 'resource')
+            // return {
+            //   ...initialLesson,
+            //   ...loadedLesson,
+            // }
           },
       }}
     >
