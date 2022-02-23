@@ -350,14 +350,6 @@ const Lesson: React.FC<LessonProps> = ({
     (comment) => comment.state !== 'hidden',
   ).length
 
-  // React.useEffect(() => {
-  //   const lesson = get(lessonState, 'context.lesson')
-  //   videoService.send({
-  //     type: 'LOAD_RESOURCE',
-  //     resource: lesson,
-  //   })
-  // }, [initialLesson.slug])
-
   React.useEffect(() => {
     //TODO: We are doing work here that the lesson machine should
     //be handling but we don't have enough information in the context
@@ -367,12 +359,6 @@ const Lesson: React.FC<LessonProps> = ({
 
     switch (currentLessonState) {
       case 'loaded':
-        if (mounted && mediaPresent) {
-          videoService.send({
-            type: 'LOAD_RESOURCE',
-            resource: lesson,
-          })
-        }
         const viewLimitNotReached = watchCount < MAX_FREE_VIEWS
         // TODO: Detangle this nested series of `if` statements to make the
         // logic more immediately easy to reason about.
@@ -406,6 +392,10 @@ const Lesson: React.FC<LessonProps> = ({
             send('SUBSCRIBE')
           }
         }
+        videoService.send({
+          type: 'LOAD_RESOURCE',
+          resource: lesson,
+        })
         break
 
       case 'viewing':
@@ -895,6 +885,10 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
   initialLesson,
   ...props
 }) => {
+  const [mounted, setMounted] = React.useState<boolean>(false)
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
   const {viewer} = useViewer()
   const [watchCount, setWatchCount] = React.useState<number>(0)
   const [lessonState, send] = useMachine(lessonMachine, {
@@ -947,13 +941,15 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
           },
       }}
     >
-      <Lesson
-        state={[lessonState, send]}
-        initialLesson={initialLesson}
-        watchCount={watchCount}
-        setWatchCount={setWatchCount}
-        {...props}
-      />
+      {mounted && (
+        <Lesson
+          state={[lessonState, send]}
+          initialLesson={initialLesson}
+          watchCount={watchCount}
+          setWatchCount={setWatchCount}
+          {...props}
+        />
+      )}
     </VideoProvider>
   )
 }
