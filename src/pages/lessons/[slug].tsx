@@ -367,7 +367,7 @@ const Lesson: React.FC<LessonProps> = ({
             type: 'LOAD_RESOURCE',
             resource: lesson,
           })
-          isWaiting && videoService.send('DONE_WAITING')
+          // isWaiting && videoService.send('DONE_WAITING')
         }
         if (session_id) {
           // If the URL contains the session ID, even if there is a viewer, put
@@ -931,8 +931,10 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
             return await viewer
           },
         loadResource:
-          (_context: VideoStateContext, event: VideoEvent) => async () => {
+          (_context: VideoStateContext, event: VideoEvent) =>
+          async ({send}: any) => {
             const loadedLesson = await get(event, 'resource')
+            loadedLesson && send('LOADED')
 
             return {
               ...initialLesson,
