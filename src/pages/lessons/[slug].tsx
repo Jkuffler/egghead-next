@@ -930,7 +930,8 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
           },
         loadResource:
           (_context: VideoStateContext, event: VideoEvent) => async () => {
-            const loadedLesson = get(event, 'resource')
+            const loadedLesson = await get(event, 'resource')
+
             return {
               ...initialLesson,
               ...loadedLesson,
@@ -940,11 +941,7 @@ const LessonPage: React.FC<{initialLesson: VideoResource}> = ({
       guards={{
         resourceLoaded:
           (context: VideoStateContext, _event: VideoEvent) => async () => {
-            return true
-            // return (
-            //   !isEmpty(get(context.resource, 'lesson.hls_url')) &&
-            //   lessonState.value === 'loaded'
-            // )
+            return await !isEmpty(get(context.resource, 'lesson.hls_url'))
           },
       }}
     >
