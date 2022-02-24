@@ -381,6 +381,7 @@ const Lesson: React.FC<LessonProps> = ({
             if (viewLimitNotReached && mediaPresent) {
               console.debug('VIEW')
               send('VIEW')
+              videoService.send('DONE_WAITING')
             } else {
               console.debug('JOIN')
               send('JOIN')
@@ -388,6 +389,7 @@ const Lesson: React.FC<LessonProps> = ({
           } else if (mediaPresent) {
             console.debug('VIEW')
             send('VIEW')
+            videoService.send('DONE_WAITING')
           } else {
             // If lesson is not 'free_forever' and the media isn't present,
             // then we deduce that the lesson is Pro-only and the user needsto
